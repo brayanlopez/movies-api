@@ -2,10 +2,14 @@ from fastapi import FastAPI, Body, Path, Query, status, Request, HTTPException, 
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
 from types import List
-from .data import movies 
-from .schemas import Movie, User
-from .utils import create_configuration_fastapi
+from data.data import movies 
+from schemas import Movie, User
+from utils.util import create_configuration_fastapi
 from jwt_manager import create_token, validate_token
+from config.database import Sesion, engine, Base 
+from models import Movie
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 create_configuration_fastapi(app)
