@@ -1,14 +1,16 @@
 from fastapi import FastAPI, Body, Path, Query, status, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import HTTPBearer
+from fastapi.enconders import jsonable_encoder
 from typing import List
 from data.data import movies
 from schemas.Movie import Movie
 from schemas.User import User
 from utils.util import create_configuration_fastapi
 from jwt_manager import create_token, validate_token
-from config.database import Sesion, engine, Base
-from models import Movie
+
+from config.database import Session, engine, Base
+from models.Movie import Movie as MovieModel
 
 Base.metadata.create_all(bind=engine)
 
@@ -31,15 +33,18 @@ def message():
 
 @app.get('/movies', tags=['movies'], response_model=List[Movie])
 def get_movies() -> List[Movie]:
-    return JSONResponse(content=movies)
+    db = Session()
+    result = db.Query(MovieModel).all()
+    return JSONResponse(content=jsonable_encoder(result), status_code=200)
 
 
 @app.get('/movies/{id}', tags=['movies'], response_model=Movie, dependencies=[Depends(JWTBearer())])
 def get_movie(id: int = Path(ge=1, le=2000)) -> Movie:
-    for item in movies:
-        if item["id"] == id:
-            return JSONResponse(content=item)
-    return JSONResponse(content=[])
+    db = Session()
+    result = db.Query(MovieModel).filter(MovieModel.id == id).first()
+    if not result:
+        return JSONResponse(content={"message":"Content not found"}, status_code=404)
+    return JSONResponse(content=jsonable_encoder(result), status_code=200)
 
 
 @app.get('/movies/', tags=['movies'], response_model=List[Movie])
@@ -50,7 +55,10 @@ def get_movies_by_category(category: str = Query(min_length=5, max_length=45)) -
 
 @app.post('/movies', tags=['movies'], response_model=dict, status_code=201)
 def create_movie(movie: Movie) -> dict:
-    movies.append(movie)
+    db = Session()
+    new_movie = MovieModel(**movie.dict())
+    db.add(new_movie)
+    db.commit()
     return JSONResponse(content={"message": "movie created succesfully"})
 
 
