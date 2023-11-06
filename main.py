@@ -1,13 +1,16 @@
 from fastapi import FastAPI, Body, Path, Query, status, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.security import HTTPBearer
 from fastapi.enconders import jsonable_encoder
 from typing import List
-from data.data import movies
+
 from schemas.Movie import Movie
 from schemas.User import User
+
 from utils.util import create_configuration_fastapi
-from jwt_manager import create_token, validate_token
+
+from jwt_manager import create_token
+from middlewares.error_handler import ErrorHandler
+from middlewares.jwt_bearer import JWTBearer
 
 from config.database import Session, engine, Base
 from models.Movie import Movie as MovieModel
@@ -15,15 +18,8 @@ from models.Movie import Movie as MovieModel
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-create_configuration_fastapi(app)
+create_configuration_fastapi(app, ErrorHandler)
 
-
-class JWTBearer():
-    async def __call__(self, request: Request):
-        auth = await super().__call__(request)
-        data = validate_token(auth.credentials)
-        if data["email"] != "admin@gmail.com" or data["password"] != "admin":
-            raise HTTPException(status_code=401, detail="invalid credentials")
 
 
 @app.get('/', tags=['home'], status_code=status.HTTP_200_OK)
