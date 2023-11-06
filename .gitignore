@@ -1,0 +1,30 @@
+# Byte-compiled / optimized Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+dist/
+build/
+.idea/
+.vscode/
+*.db
+*.sqlite3
+*.log
+
+# OS or editor-generated files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+
+# Project-specific settings
+settings.ini
